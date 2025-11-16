@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getClothingDescription, generateStyledImage } from '../backend/api';
+import { getClothingDescription, generateStyledImage } from '../api/api';
 import { ImageUploader } from './ImageUploader';
 import { OptionSelector } from './OptionSelector';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -65,7 +65,8 @@ export const MainApp: React.FC<MainAppProps> = ({ onNavigateToPricing }) => {
             setStep('CUSTOMIZE');
         } catch (err) {
             console.error(err);
-            setError('Falha ao analisar a roupa. Tente outra imagem.');
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(`Falha na Análise: ${errorMessage}`);
             // Reset on error
             setUploadedImage(null);
             setImagePreviewUrl(null);
@@ -134,7 +135,8 @@ export const MainApp: React.FC<MainAppProps> = ({ onNavigateToPricing }) => {
             setStep('RESULT');
         } catch (err) {
             console.error(err);
-            setError('Falha ao gerar a imagem. Por favor, tente novamente.');
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(`Falha ao Gerar Imagem: ${errorMessage}`);
         } finally {
             setIsGenerating(false);
         }
