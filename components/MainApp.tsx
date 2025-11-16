@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getClothingDescription, generateStyledImage } from '../api/api';
+import { getClothingDescription, generateStyledImage } from '/src/api/api';
 import { ImageUploader } from './ImageUploader';
 import { OptionSelector } from './OptionSelector';
 import { LoadingSpinner } from './LoadingSpinner';
