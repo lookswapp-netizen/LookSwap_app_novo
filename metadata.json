@@ -1,0 +1,5 @@
+{
+  "name": "LookSwap",
+  "description": "Faça o upload de uma foto com uma roupa, personalize a modelo e o cenário, e gere novas imagens realistas com o mesmo look usando IA.",
+  "requestFramePermissions": []
+}
