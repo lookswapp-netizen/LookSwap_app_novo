@@ -73,12 +73,17 @@ export const ACCESSORY_OPTIONS: Option[] = [
 ];
 
 export const MIRROR_INTERACTION_OPTIONS: Option[] = [
-    { id: 'mi0', label: 'Nenhuma (sem espelho)' },
-    { id: 'mi1', label: 'Corpo inteiro no espelho' },
-    { id: 'mi2', label: 'Meio corpo no espelho' },
-    { id: 'mi4', label: 'De costas com reflexo' },
-    { id: 'mi5', label: 'Ângulo lateral' },
-    { id: 'mi6', label: 'Selfie com celular baixo' },
+    { id: 'mi1', label: 'Nenhum (sem espelho)' },
+    { id: 'mi2', label: 'Corpo inteiro no espelho' },
+    { id: 'mi3', label: 'Meio corpo no espelho' },
+    { id: 'mi4', label: 'Selfie no espelho (com celular)' },
+    { id: 'mi5', label: 'Olhando para o espelho (sem celular)' },
+    { id: 'mi6', label: 'Ângulo lateral no espelho' },
+    { id: 'mi7', label: 'De costas com reflexo' },
+    { id: 'mi8', label: 'Close no espelho' },
+    { id: 'mi9', label: 'Espelho ao fundo (modelo não centralizada)' },
+];
+
 ];
 
 export const POSTURE_OPTIONS: Option[] = [

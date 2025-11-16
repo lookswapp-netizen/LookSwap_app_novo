@@ -77,12 +77,15 @@ const ACCESSORY_OPTIONS: Option[] = [
 ];
 
 const MIRROR_INTERACTION_OPTIONS: Option[] = [
-    { id: 'mi0', label: 'Nenhuma (sem espelho)', value: 'no mirror in the scene, the photo is a direct shot, not a reflection' },
-    { id: 'mi1', label: 'Corpo inteiro no espelho', value: 'in a full-body shot taken in front of a mirror' },
-    { id: 'mi2', label: 'Meio corpo no espelho', value: 'in a medium shot (half-body) reflected in the mirror' },
-    { id: 'mi4', label: 'De costas com reflexo', value: 'posing with her back to the camera, with her face visible in the mirror reflection' },
-    { id: 'mi5', label: 'Ângulo lateral', value: 'in a side-angle shot, with her profile reflected in the mirror' },
-    { id: 'mi6', label: 'Selfie com celular baixo', value: 'taking a mirror selfie with the phone held low, near the waist' },
+    { id: 'mi0', label: 'Nenhum (sem espelho)', value: '' },
+    { id: 'mi1', label: 'Corpo inteiro no espelho', value: 'full-body view captured through a mirror perspective.' },
+    { id: 'mi2', label: 'Meio corpo no espelho', value: 'upper-body view framed naturally through the mirror.' },
+    { id: 'mi3', label: 'Selfie no espelho (com celular)', value: 'mirror selfie pose holding a smartphone, natural and confident.' },
+    { id: 'mi4', label: 'Olhando para o espelho (sem celular)', value: 'standing in front of the mirror, looking at the reflection without holding a phone.' },
+    { id: 'mi5', label: 'Ângulo lateral no espelho', value: 'side-angle mirror perspective showing the outfit naturally.' },
+    { id: 'mi6', label: 'De costas com reflexo', value: 'back-facing pose with the outfit reflected clearly in the mirror.' },
+    { id: 'mi7', label: 'Close no espelho', value: 'close-up mirror framing highlighting upper-body and outfit details.' },
+    { id: 'mi8', label: 'Espelho ao fundo (modelo não centralizada)', value: 'mirror present in the background as part of the environment, without direct interaction.' },
 ];
 
 const POSTURE_OPTIONS: Option[] = [
@@ -136,13 +139,27 @@ const generateStyledImage = async (options: GenerateImageOptions, base64Image: s
     const environmentValue = ENVIRONMENT_OPTIONS.find(e => e.id === environmentId)?.value || '';
     const lightingValue = LIGHTING_OPTIONS.find(l => l.id === lightingId)?.value || '';
     
-    const phoneModeValue = PHONE_MODE_OPTIONS.find(p => p.id === phoneModeId)?.value || '';
+    const mirrorInteractionValue = MIRROR_INTERACTION_OPTIONS.find(m => m.id === mirrorInteractionId)?.value || '';
+    const postureValue = POSTURE_OPTIONS.find(p => p.id === postureId)?.value || '';
+    let phoneModeValue = PHONE_MODE_OPTIONS.find(p => p.id === phoneModeId)?.value || '';
     const accessoryValue = ACCESSORY_OPTIONS
         .filter(a => accessoryIds.includes(a.id))
         .map(a => a.value)
         .join(', ');
-    const mirrorInteractionValue = MIRROR_INTERACTION_OPTIONS.find(m => m.id === mirrorInteractionId)?.value || '';
-    const postureValue = POSTURE_OPTIONS.find(p => p.id === postureId)?.value || '';
+
+    // Se a interação com o espelho já define o estado do telefone, anula o modo do telefone para evitar conflito/duplicação.
+    if (mirrorInteractionId === 'mi3' || mirrorInteractionId === 'mi4') {
+        phoneModeValue = '';
+    }
+        
+    const compositionParts = [
+        mirrorInteractionValue,
+        phoneModeValue,
+        postureValue,
+        accessoryValue,
+    ];
+    
+    const compositionDescription = compositionParts.filter(part => part && part.trim() !== '').join(', ');
     
     let cameraInstruction = '';
     let backgroundInstruction = '';
@@ -169,7 +186,6 @@ ensure the subject fits comfortably within the frame, with minimal empty space o
     }
     
     const personaDescription = `${personaValue} ${hairValue}`.trim();
-    const compositionDescription = `${mirrorInteractionValue}, ${phoneModeValue}, ${postureValue}, ${accessoryValue}`;
     
     const finalPrompt = `**Primary Critical Objective: Accurately transfer the clothing from the reference image to the new model and scene.**
 - **Clothing Rule (Non-negotiable):** The generated image MUST feature the EXACT same clothing as the input image. This includes the style, cut, fabric, texture, pattern, and color. Your main goal is to preserve this outfit perfectly. Do not change, alter, or "reimagine" the clothing in any way. The original outfit is described as: ${clothingDescription}.
