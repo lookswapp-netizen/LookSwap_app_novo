@@ -10,8 +10,7 @@ const App: React.FC = () => {
 
     const navigateToApp = () => setCurrentPage('APP');
     const navigateToPricing = () => setCurrentPage('PRICING');
-    const navigateToLanding = () => setCurrentPage('LANDING');
-
+    
     const renderCurrentPage = () => {
         switch (currentPage) {
             case 'APP':
