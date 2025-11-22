@@ -34,8 +34,10 @@ export const handler = async (event, context) => {
 
     const ai = new GoogleGenerativeAI(process.env.API_KEY);
 
+    // 🔥 CORREÇÃO 1: modelo atualizado
     const model = ai.getGenerativeModel({
-      model: "gemini-2.5-flash-image",
+      model: "models/gemini-2.5-flash-image",
+      apiVersion: "v1beta",  // 🔥 CORREÇÃO 2: forçar v1beta
     });
 
     const cleanBase64 = imageBase64.split(",")[1];
