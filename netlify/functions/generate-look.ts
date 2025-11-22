@@ -1,42 +1,58 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export default async (req: Request, context: any) => {
+
+export const handler = async (event, context) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
   };
 
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers });
+  // Preflight
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers,
+      body: "",
+    };
   }
 
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers });
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
   try {
-    const body = await req.json();
+    const body = JSON.parse(event.body || "{}");
     const { imageBase64, sceneData, aspectRatio } = body;
 
     if (!process.env.API_KEY) {
-      throw new Error("API Key is missing");
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: "API Key is missing" }),
+      };
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenerativeAI(process.env.API_KEY);
+
+
     const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const prompt = `Generate photorealistic fashion photo. Scene: ${sceneData.category}`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: "gemini-2.5-flash-image",
       contents: {
         parts: [
           { text: prompt },
           {
             inlineData: {
               data: cleanBase64,
-              mimeType: 'image/jpeg',
+              mimeType: "image/jpeg",
             },
           },
         ],
@@ -45,15 +61,16 @@ export default async (req: Request, context: any) => {
         imageConfig: {
           aspectRatio: aspectRatio,
         },
-        temperature: 1.0
-      }
+        temperature: 1.0,
+      },
     });
 
     let generatedImage = null;
     const parts = response.candidates?.[0]?.content?.parts;
+
     if (parts) {
       for (const part of parts) {
-        if (part.inlineData && part.inlineData.data) {
+        if (part.inlineData?.data) {
           generatedImage = `data:image/png;base64,${part.inlineData.data}`;
           break;
         }
@@ -61,12 +78,23 @@ export default async (req: Request, context: any) => {
     }
 
     if (!generatedImage) {
-      return new Response(JSON.stringify({ error: 'Nenhuma imagem gerada.' }), { status: 400, headers });
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: "Nenhuma imagem gerada." }),
+      };
     }
 
-    return new Response(JSON.stringify({ image: generatedImage }), { status: 200, headers });
-
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ image: generatedImage }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: error.message }),
+    };
   }
 };

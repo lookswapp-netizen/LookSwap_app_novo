@@ -137,74 +137,34 @@ Output only rewritten text.
   }
 };
 
-/** IMAGE GENERATION ENGINE */
+/** ================================================
+ *  IMAGE GENERATION ENGINE — UPDATED (ONLY THIS)
+ *  ================================================
+ */
 export const generateLook = async (
   imageBase64: string,
   sceneData: SceneData,
   personaData: PersonaState,
   aspectRatio: AspectRatio
 ): Promise<string> => {
-  if (!process.env.API_KEY) throw new Error("API Key missing");
 
-  const ai = new GoogleGenerativeAI(process.env.API_KEY);
-
-  const cleanBase64 = imageBase64.replace(
-    /^data:image\/(png|jpeg|jpg|webp);base64,/,
-    ""
-  );
-
-  const model = ai.getGenerativeModel({
-    model: "gemini-2.5-flash-image"
+  const response = await fetch("http://localhost:3001/generate-look", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      imageBase64,
+      sceneData,
+      aspectRatio
+    })
   });
 
-  const seed = Math.floor(Math.random() * 999999);
+  const data = await response.json();
 
-  const prompt = `
-Generate a photorealistic fashion photo. Unique model. No resemblance to reference.
-
-[SEED: ${seed}]
-
-Scene: ${sceneData.category}
-Details: ${Object.entries(sceneData.options)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(", ")}
-
-Clothing must match EXACTLY the reference image.
-`;
-
-  const result = await generateWithRetry(() =>
-    model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                data: cleanBase64,
-                mimeType: "image/jpeg"
-              }
-            }
-          ]
-        }
-      ],
-      generationConfig: {
-        temperature: 1,
-        image: { aspectRatio }
-      }
-    }),
-    4
-  );
-
-  const parts = result.response.candidates?.[0]?.content?.parts || [];
-
-  for (const p of parts) {
-    if (p.inlineData?.data) {
-      return `data:image/png;base64,${p.inlineData.data}`;
-    }
+  if (!data.image) {
+    throw new Error("Falha ao gerar imagem.");
   }
 
-  throw new Error("Nenhuma imagem foi gerada.");
+  return data.image;
 };
 
 /** VIDEO SCRIPT ENGINE — FIXED with new Gemini API */
@@ -214,9 +174,11 @@ export const generateVideoInstructions = async (
   finalImageUrl: string,
   sceneData: SceneData
 ): Promise<string> => {
-  if (!process.env.API_KEY) throw new Error("API Key missing");
 
-  const ai = new GoogleGenerativeAI(process.env.API_KEY);
+  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!API_KEY) throw new Error("API Key missing");
+
+  const ai = new GoogleGenerativeAI(API_KEY);
   const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const WORD_TARGET = 22;
