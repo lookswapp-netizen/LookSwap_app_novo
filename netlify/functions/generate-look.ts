@@ -38,7 +38,15 @@ export const handler = async (event, context) => {
       model: "gemini-2.5-flash-image",
     });
 
-    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const cleanBase64 = imageBase64.split(",")[1];
+
+    const mime =
+      imageBase64.includes("png")
+        ? "image/png"
+        : imageBase64.includes("jpg") || imageBase64.includes("jpeg")
+        ? "image/jpeg"
+        : "image/webp";
+
     const prompt = `Generate photorealistic fashion photo. Scene: ${sceneData.category}`;
 
     const response = await model.generateContent({
@@ -50,7 +58,7 @@ export const handler = async (event, context) => {
             {
               inlineData: {
                 data: cleanBase64,
-                mimeType: "image/jpeg",
+                mimeType: mime,
               },
             },
           ],
