@@ -1,5 +1,5 @@
 {
-  "name": "LookSwap",
-  "description": "Faça o upload de uma foto com uma roupa, personalize a modelo e o cenário, e gere novas imagens realistas com o mesmo look usando IA.",
+  "name": "Copy of LookSwap Wizard",
+  "description": "Assistente de transformação de moda com IA que permite aos usuários fazer upload, recortar e gerar novos estilos para suas fotos usando Gemini.",
   "requestFramePermissions": []
 }
