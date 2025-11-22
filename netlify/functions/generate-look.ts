@@ -55,6 +55,7 @@ export const handler = async (event, context) => {
     const response = await model.generateContent({
       contents: [
         {
+          role: "user", // <-- ADICIONADO (correto)
           parts: [
             { text: prompt },
             {
@@ -68,7 +69,9 @@ export const handler = async (event, context) => {
       ],
       generationConfig: {
         temperature: 1,
-        aspectRatio: aspectRatio, // <-- O CERTO
+        imageGenerationConfig: {     // <-- CORRIGIDO (imageConfig → imageGenerationConfig)
+          aspectRatio: aspectRatio,
+        },
       },
     });
 
