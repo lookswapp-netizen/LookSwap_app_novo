@@ -24,8 +24,9 @@ export const handler = async (event, context) => {
     const body = JSON.parse(event.body || "{}");
     const { imageBase64, sceneData, aspectRatio } = body;
 
+    console.log("🔍 Recebido:", { aspectRatio, hasBase64: !!imageBase64 });
+
     if (!process.env.API_KEY) {
-      console.error("❌ ERRO: API_KEY NÃO CARREGADA");
       return {
         statusCode: 500,
         headers,
@@ -35,16 +36,13 @@ export const handler = async (event, context) => {
 
     const ai = new GoogleGenerativeAI(process.env.API_KEY);
 
-    // Modelo correto do Google AI Studio + versão correta da API
     const model = ai.getGenerativeModel({
       model: "models/gemini-2.5-flash-image",
       apiVersion: "v1beta",
     });
 
-    // Limpeza do Base64
     const cleanBase64 = imageBase64.split(",")[1];
 
-    // Identificação do tipo MIME
     const mime =
       imageBase64.includes("png")
         ? "image/png"
@@ -71,9 +69,13 @@ export const handler = async (event, context) => {
       ],
       generationConfig: {
         temperature: 1.0,
-        imageConfig: { aspectRatio },
+      },
+      image: {
+        aspectRatio: aspectRatio, // ✔️ novo formato válido
       },
     });
+
+    console.log("🔍 RAW Gemini response:", JSON.stringify(response, null, 2));
 
     const parts = response.response?.candidates?.[0]?.content?.parts;
     let generatedImage = null;
@@ -88,7 +90,6 @@ export const handler = async (event, context) => {
     }
 
     if (!generatedImage) {
-      console.error("❌ Nenhuma imagem retornada pelo Gemini");
       return {
         statusCode: 400,
         headers,
@@ -103,14 +104,10 @@ export const handler = async (event, context) => {
     };
   } catch (error) {
     console.error("🔥 NETLIFY FUNCTION ERROR:", error);
-
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: error.message,
-        stack: error.stack,
-      }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };
