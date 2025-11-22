@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-
 export const handler = async (event, context) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -9,13 +8,8 @@ export const handler = async (event, context) => {
     "Content-Type": "application/json",
   };
 
-  // Preflight
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers,
-      body: "",
-    };
+    return { statusCode: 200, headers, body: "" };
   }
 
   if (event.httpMethod !== "POST") {
@@ -40,33 +34,38 @@ export const handler = async (event, context) => {
 
     const ai = new GoogleGenerativeAI(process.env.API_KEY);
 
+    const model = ai.getGenerativeModel({
+      model: "gemini-2.5-flash-image",
+    });
 
     const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const prompt = `Generate photorealistic fashion photo. Scene: ${sceneData.category}`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: {
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              data: cleanBase64,
-              mimeType: "image/jpeg",
+    const response = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: cleanBase64,
+                mimeType: "image/jpeg",
+              },
             },
-          },
-        ],
-      },
-      config: {
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 1.0,
         imageConfig: {
           aspectRatio: aspectRatio,
         },
-        temperature: 1.0,
       },
     });
 
+    const parts = response.response?.candidates?.[0]?.content?.parts;
     let generatedImage = null;
-    const parts = response.candidates?.[0]?.content?.parts;
 
     if (parts) {
       for (const part of parts) {
